@@ -1,6 +1,6 @@
 # Kółko i Krzyżyk - Refaktoryzacja z Q-Learning
 
-Program kółko i krzyżyk z implementacją Q-learning i strategicznego AI. Refaktoryzacja oryginalnego monolitycznego kodu w modułową architekturę.
+Program kółko i krzyżyk z implementacją Q-learning i strategicznego AI.
 
 ## Ideą
 
