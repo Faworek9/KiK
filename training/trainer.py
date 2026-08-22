@@ -7,6 +7,7 @@ from game.board import create_empty_board, available_moves, to_state_key
 from game.game import Game
 from game.rules import get_game_result
 from ai.move_finder import StrategicMoveFinder
+from ai.move_finder_legacy import LegacyStrategicMoveFinder
 from ai.q_learning import QLearningAgent
 from storage.q_table_storage import load_q_table, save_q_table
 
@@ -48,8 +49,14 @@ class Trainer:
         """Initialize trainer with strategies from config."""
         self.stats = TrainingStats()
         self.q_agent = QLearningAgent(epsilon=config.INITIAL_EPSILON)
-        self.strategic_finder_x = StrategicMoveFinder(config.PLAYER_X)
-        self.strategic_finder_o = StrategicMoveFinder(config.PLAYER_O)
+        
+        # Create strategic finders based on algorithm selection
+        if config.STRATEGIC_ALGORITHM == config.StrategicAlgorithmType.MINIMAX:
+            self.strategic_finder_x = StrategicMoveFinder(config.PLAYER_X)
+            self.strategic_finder_o = StrategicMoveFinder(config.PLAYER_O)
+        else:  # LEGACY_HEURISTIC
+            self.strategic_finder_x = LegacyStrategicMoveFinder(config.PLAYER_X)
+            self.strategic_finder_o = LegacyStrategicMoveFinder(config.PLAYER_O)
         
         # Determine which player uses Q-learning
         self.q_learning_player = None
