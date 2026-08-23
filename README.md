@@ -35,6 +35,20 @@ PLAYER_O_STRATEGY: Final[StrategyType] = StrategyType.Q_LEARNING
 - Obaj Strategic - testy idealnej gry (powinny być same remisy)
 - Obaj Random - testy losowe
 
+### Wybór algorytmu strategicznego
+
+Dla strategicznego AI możesz wybrać algorytm w linii 32 pliku `config.py`:
+
+```python
+# Strategic algorithm configuration
+# Options: StrategicAlgorithmType.MINIMAX, StrategicAlgorithmType.LEGACY_HEURISTIC
+STRATEGIC_ALGORITHM: Final[StrategicAlgorithmType] = StrategicAlgorithmType.LEGACY_HEURISTIC
+```
+
+**Dostępne algorytmy:**
+- **MINIMAX** - Algorytm minimax z alpha-beta pruning (plik `ai/move_finder.py`). Gwarantuje idealną grę, ale jest wolniejszy.
+- **LEGACY_HEURISTIC** - Heurystyczny algorytm oparty na hierarchii priorytetów (plik `ai/move_finder_legacy.py`). Jest kilkukrotnie szybszy od minimax i oferuje bardzo dobrą jakość gry.
+
 ## Uruchomienie
 
 ```bash

@@ -29,7 +29,7 @@ PLAYER_O_STRATEGY: Final[StrategyType] = StrategyType.STRATEGIC
 
 # Strategic algorithm configuration
 # Options: StrategicAlgorithmType.MINIMAX, StrategicAlgorithmType.LEGACY_HEURISTIC
-STRATEGIC_ALGORITHM: Final[StrategicAlgorithmType] = StrategicAlgorithmType.MINIMAX
+STRATEGIC_ALGORITHM: Final[StrategicAlgorithmType] = StrategicAlgorithmType.LEGACY_HEURISTIC
 
 # Training parameters
 INITIAL_EPSILON: Final[float] = 0.7
