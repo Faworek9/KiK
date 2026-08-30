@@ -5,6 +5,7 @@ import random
 import config
 from game.board import Board, make_move, available_moves
 from game.rules import check_winner
+from game.board_constants import WINNING_LINES, CORNERS, EDGES, CENTER
 
 
 def opponent(player: int) -> int:
@@ -84,14 +85,14 @@ def strategic_opening_move(board: Board, player: int) -> int:
     
     if moves_count == 0:
         # First move: corners or center
-        options = list(config.CORNERS) + [config.CENTER]
+        options = list(CORNERS) + [CENTER]
         return random.choice(options)
     elif moves_count == 1:
         # Second move: center if available, otherwise corner
-        if board[config.CENTER] == config.EMPTY:
-            return config.CENTER
+        if board[CENTER] == config.EMPTY:
+            return CENTER
         else:
-            return random.choice(list(config.CORNERS))
+            return random.choice(list(CORNERS))
     else:
         # Not an opening move
         return random_move(board)
@@ -275,7 +276,7 @@ class StrategicMoveFinder:
 
     def _ordered_moves(self, board: Board) -> list[int]:
         """Order moves to keep decisions deterministic among equally good outcomes."""
-        move_priority = [config.CENTER, *config.CORNERS, *config.EDGES]
+        move_priority = [CENTER, *CORNERS, *EDGES]
         moves = available_moves(board)
         return [move for move in move_priority if move in moves]
     

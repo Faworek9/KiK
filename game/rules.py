@@ -3,6 +3,7 @@
 from typing import Optional
 import config
 from game.board import Board
+from game.board_constants import WINNING_LINES
 
 
 def check_winner(board: Board) -> Optional[int]:
@@ -14,7 +15,7 @@ def check_winner(board: Board) -> Optional[int]:
     Returns:
         PLAYER_X if X wins, PLAYER_O if O wins, None if no winner yet
     """
-    for line in config.WINNING_LINES:
+    for line in WINNING_LINES:
         values = [board[pos] for pos in line]
         if values[0] != config.EMPTY and values[0] == values[1] == values[2]:
             return values[0]

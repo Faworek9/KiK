@@ -5,6 +5,7 @@ import random
 import config
 from game.board import Board, make_move, available_moves
 from game.rules import check_winner
+from game.board_constants import WINNING_LINES, CORNERS, EDGES, CENTER
 
 
 def opponent(player: int) -> int:
@@ -15,7 +16,7 @@ def opponent(player: int) -> int:
 def count_threats(board: Board, player: int) -> list[int]:
     """Return every empty square that completes a line for a player."""
     threats: list[int] = []
-    for line in config.WINNING_LINES:
+    for line in WINNING_LINES:
         values = [board[pos] for pos in line]
         if values.count(player) == 2 and values.count(config.EMPTY) == 1:
             for pos in line:
@@ -80,9 +81,9 @@ def find_blocking_move(board: Board, player: int) -> Optional[int]:
             score += 100
         if len(count_threats(test_board, opp)) == 0:
             score += 25
-        if move == config.CENTER:
+        if move == CENTER:
             score += 5
-        elif move in config.CORNERS:
+        elif move in CORNERS:
             score += 3
         if score > best_score:
             best_score = score
@@ -112,7 +113,7 @@ def find_forced_sequence(board: Board, player: int, depth: int = 2) -> Optional[
         
         # Check if this move creates a winning opportunity
         winning_lines = 0
-        for line in config.WINNING_LINES:
+        for line in WINNING_LINES:
             values = [board1[pos] for pos in line]
             if values.count(player) == 2 and values.count(config.EMPTY) == 1:
                 winning_lines += 1
@@ -252,9 +253,9 @@ def _tactical_evaluation(board: Board, player: int, current_player: int, depth: 
         score -= 25 * len(count_threats(board, opponent(player)))
         score += 5 * len(find_winning_moves(board, player))
         score -= 10 * len(find_winning_moves(board, opponent(player)))
-        if board[config.CENTER] == player:
+        if board[CENTER] == player:
             score += 3
-        elif board[config.CENTER] == opponent(player):
+        elif board[CENTER] == opponent(player):
             score -= 3
         return score
 
@@ -314,8 +315,8 @@ def find_center_control(board: Board, player: int) -> Optional[int]:
     Returns:
         Center if available, otherwise None
     """
-    if board[config.CENTER] == config.EMPTY:
-        return config.CENTER
+    if board[CENTER] == config.EMPTY:
+        return CENTER
     return None
 
 
@@ -333,16 +334,16 @@ def find_strategic_pattern(board: Board, player: int) -> Optional[int]:
     moves = available_moves(board)
     
     # Strategic pattern: if we have center and opponent has corner, play opposite corner
-    if board[config.CENTER] == player:
-        for i in config.CORNERS:
+    if board[CENTER] == player:
+        for i in CORNERS:
             if board[i] == opp:
                 opposite = 8 - i
                 if opposite in moves:
                     return opposite
     
     # Strategic pattern: if opponent has center, play corner to create diagonal threat
-    if board[config.CENTER] == opp:
-        for corner in config.CORNERS:
+    if board[CENTER] == opp:
+        for corner in CORNERS:
             if corner in moves:
                 return corner
     
@@ -370,9 +371,9 @@ def find_best_positional_move(board: Board, player: int) -> Optional[int]:
         score = 0
         
         # Position priority: center > corners > edges
-        if move == config.CENTER:
+        if move == CENTER:
             score += 5
-        elif move in config.CORNERS:
+        elif move in CORNERS:
             score += 3
         else:  # edges
             score += 1
@@ -380,7 +381,7 @@ def find_best_positional_move(board: Board, player: int) -> Optional[int]:
         # Check if this move creates a winning opportunity
         test_board = make_move(board, move, player)
         winning_lines = 0
-        for line in config.WINNING_LINES:
+        for line in WINNING_LINES:
             values = [test_board[pos] for pos in line]
             if values.count(player) == 2 and values.count(config.EMPTY) == 1:
                 winning_lines += 1
@@ -398,7 +399,7 @@ def find_best_positional_move(board: Board, player: int) -> Optional[int]:
         # Check if this move prevents opponent from creating winning lines
         test_board_opp = make_move(board, move, player)
         opp_winning_lines = 0
-        for line in config.WINNING_LINES:
+        for line in WINNING_LINES:
             values = [test_board_opp[pos] for pos in line]
             if values.count(opp) == 2 and values.count(config.EMPTY) == 1:
                 opp_winning_lines += 1
@@ -406,7 +407,7 @@ def find_best_positional_move(board: Board, player: int) -> Optional[int]:
         
         # Bonus for moves that create potential winning lines
         potential_lines = 0
-        for line in config.WINNING_LINES:
+        for line in WINNING_LINES:
             values = [test_board[pos] for pos in line]
             if values.count(player) == 1 and values.count(config.EMPTY) == 2:
                 potential_lines += 1
@@ -436,7 +437,7 @@ def find_offensive_fork(board: Board, player: int) -> Optional[int]:
         
         # Count how many winning lines this move creates
         winning_lines = 0
-        for line in config.WINNING_LINES:
+        for line in WINNING_LINES:
             values = [test_board[pos] for pos in line]
             if values.count(player) == 2 and values.count(config.EMPTY) == 1:
                 winning_lines += 1
@@ -462,23 +463,23 @@ def strategic_opening_move(board: Board, player: int) -> int:
     
     if moves_count == 0:
         # First move: always center (optimal)
-        return config.CENTER
+        return CENTER
     elif moves_count == 1:
         # Second move: center if available, otherwise corner opposite to opponent
-        if board[config.CENTER] == config.EMPTY:
-            return config.CENTER
+        if board[CENTER] == config.EMPTY:
+            return CENTER
         else:
             # Find opponent's first move and play opposite corner
             opp = opponent(player)
             for i in range(9):
                 if board[i] == opp:
-                    if i in config.CORNERS:
+                    if i in CORNERS:
                         # Play opposite corner
                         opposite = 8 - i  # 0->8, 2->6, 6->2, 8->0
                         if board[opposite] == config.EMPTY:
                             return opposite
                     # If opponent played edge, play any corner
-                    for corner in config.CORNERS:
+                    for corner in CORNERS:
                         if board[corner] == config.EMPTY:
                             return corner
     elif moves_count == 2:
@@ -493,15 +494,15 @@ def strategic_opening_move(board: Board, player: int) -> int:
         if opp_threats:
             return opp_threats[0]
 
-        if board[config.CENTER] == player:
-            for i in config.CORNERS:
+        if board[CENTER] == player:
+            for i in CORNERS:
                 if board[i] == opp:
                     opposite = 8 - i
                     if board[opposite] == config.EMPTY:
                         return opposite
 
-        if board[config.CENTER] == opp:
-            for corner in config.CORNERS:
+        if board[CENTER] == opp:
+            for corner in CORNERS:
                 if board[corner] == config.EMPTY:
                     return corner
 

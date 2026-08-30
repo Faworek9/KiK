@@ -5,6 +5,7 @@ from typing import Optional
 import config
 from game.board import Board, available_moves, make_move
 from game.rules import check_winner
+from game.board_constants import WINNING_LINES, CORNERS, EDGES, CENTER
 
 
 def opponent(player: int) -> int:
@@ -14,21 +15,21 @@ def opponent(player: int) -> int:
 
 def _position_score(move: int) -> int:
     """Return a simple positional priority for deterministic tie-breaking."""
-    if move == config.CENTER:
+    if move == CENTER:
         return 3
-    if move in config.CORNERS:
+    if move in CORNERS:
         return 2
     return 1
 
 
 def _is_corner(move: int) -> bool:
     """Check whether a move is a corner square."""
-    return move in config.CORNERS
+    return move in CORNERS
 
 
 def _is_side(move: int) -> bool:
     """Check whether a move is a side square."""
-    return move in config.EDGES
+    return move in EDGES
 
 
 def _opposite_corner(move: int) -> Optional[int]:
@@ -58,12 +59,12 @@ def find_opening_move(board: Board, player: int) -> Optional[int]:
     moves_played = 9 - len(available_moves(board))
 
     if moves_played == 0:
-        return config.CENTER
+        return CENTER
 
     if moves_played == 1:
-        if board[config.CENTER] == config.EMPTY:
-            return config.CENTER
-        for corner in config.CORNERS:
+        if board[CENTER] == config.EMPTY:
+            return CENTER
+        for corner in CORNERS:
             if board[corner] == config.EMPTY:
                 return corner
 
@@ -94,7 +95,7 @@ def _line_balance(board: Board, player: int) -> int:
     opp = opponent(player)
     score = 0
 
-    for line in config.WINNING_LINES:
+    for line in WINNING_LINES:
         values = [board[pos] for pos in line]
         our_count = values.count(player)
         opp_count = values.count(opp)
@@ -208,7 +209,7 @@ def find_fork_block_move(board: Board, player: int) -> Optional[int]:
             len(opp_forks_before) - opp_forks_after,
             -opp_forks_after,
             our_wins_after,
-            1 if _is_side(move) and _has_opposite_corners(board, opp) and board[config.CENTER] == player else 0,
+            1 if _is_side(move) and _has_opposite_corners(board, opp) and board[CENTER] == player else 0,
             _position_score(move),
         )
         if score > best_score:
@@ -220,14 +221,14 @@ def find_fork_block_move(board: Board, player: int) -> Optional[int]:
 
 def find_opposite_corner_move(board: Board, player: int) -> Optional[int]:
     """Find an opposite corner move when the center is already controlled."""
-    if board[config.CENTER] != player:
+    if board[CENTER] != player:
         return None
 
     opp = opponent(player)
     best_move: Optional[int] = None
     best_score = (-1, -1)
 
-    for corner in config.CORNERS:
+    for corner in CORNERS:
         if board[corner] != opp:
             continue
 
