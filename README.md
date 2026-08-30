@@ -4,7 +4,7 @@ Program kółko i krzyżyk z implementacją Q-learning i strategicznego AI.
 
 ## Ideą
 
-Program uczy się grać w kółko i krzyżyk używając Q-learning. Agent Q-learning gra przeciwko strategicznemu AI (opartemu na minimax z alpha-beta pruning), co pozwala na efektywniejszą naukę - uczysz się walcząc z ekspertem, a nie z amatorami.
+Program uczy się grać w kółko i krzyżyk używając Q-learning. Agent Q-learning gra przeciwko strategicznemu AI, co pozwala na efektywniejszą naukę - uczysz się walcząc z ekspertem, a nie z amatorami.
 
 ## Architektura
 
@@ -30,7 +30,7 @@ PLAYER_O_STRATEGY: Final[StrategyType] = StrategyType.Q_LEARNING
 ```
 
 **Przykłady:**
-- X = Strategic, O = Q-Learning (domyślne) - O uczy się grając przeciwko strategicznemu X
+- X = Strategic, O = Q-Learning - O uczy się grając przeciwko strategicznemu X
 - X = Q-Learning, O = Strategic - X uczy się grając przeciwko strategicznemu O
 - Obaj Strategic - testy idealnej gry (powinny być same remisy)
 - Obaj Random - testy losowe
@@ -50,11 +50,6 @@ STRATEGIC_ALGORITHM: Final[StrategicAlgorithmType] = StrategicAlgorithmType.LEGA
 - **HYBRID** - Hybrydowy algorytm łączący heurystyczną hierarchię priorytetów z taktyczną analizą kilku ruchów do przodu (plik `ai/move_finder_hybrid.py`). Jest kilkukrotnie szybszy od minimax i oferuje bardzo dobrą jakość gry.
 - **LEGACY** - Czysto heurystyczny algorytm bez minmax (plik `ai/move_finder_legacy.py`). Jest prosty, szybki i działa symetrycznie dla X oraz O.
 
-**Co zostało zmienione w `LEGACY`:**
-- nowy moduł ma własny, prosty zestaw reguł heurystycznych,
-- priorytet ma natychmiastowa wygrana i blokada zagrożeń przeciwnika,
-- algorytm rozpoznaje forki i ruchy obronne bez użycia minmax,
-- decyzje końcowe są deterministyczne i oparte na analizie linii oraz pozycji.
 
 ## Uruchomienie
 
