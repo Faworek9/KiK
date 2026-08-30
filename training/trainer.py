@@ -9,7 +9,8 @@ from game.rules import get_game_result
 from strategic.move_finder_minimax import StrategicMoveFinder
 from strategic.move_finder_hybrid import HybridStrategicMoveFinder
 from strategic.move_finder_legacy import LegacyStrategicMoveFinder
-from ai.q_learning_legacy import LegacyQLearningAgent as QLearningAgent
+from ai.q_learning_legacy import LegacyQLearningAgent
+from ai.q_learning_upgraded import UpgradedQLearningAgent
 from storage.q_table_storage import load_q_table, save_q_table
 
 
@@ -49,7 +50,12 @@ class Trainer:
     def __init__(self):
         """Initialize trainer with strategies from config."""
         self.stats = TrainingStats()
-        self.q_agent = QLearningAgent(epsilon=config.INITIAL_EPSILON)
+        
+        # Create Q-learning agent based on algorithm selection
+        if config.Q_LEARNING_ALGORITHM == config.QLearningAlgorithmType.UPGRADED:
+            self.q_agent = UpgradedQLearningAgent(epsilon=config.INITIAL_EPSILON)
+        else:
+            self.q_agent = LegacyQLearningAgent(epsilon=config.INITIAL_EPSILON)
         
         # Create strategic finders based on algorithm selection
         if config.STRATEGIC_ALGORITHM == config.StrategicAlgorithmType.MINIMAX:

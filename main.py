@@ -11,6 +11,7 @@ def main():
     print(f"Initial epsilon: {config.INITIAL_EPSILON}")
     print(f"Player X strategy: {config.PLAYER_X_STRATEGY.value}")
     print(f"Player O strategy: {config.PLAYER_O_STRATEGY.value}")
+    print(f"Q-learning algorithm: {config.Q_LEARNING_ALGORITHM.value}")
     
     trainer = Trainer()
     

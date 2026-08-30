@@ -51,6 +51,20 @@ STRATEGIC_ALGORITHM: Final[StrategicAlgorithmType] = StrategicAlgorithmType.LEGA
 - **HYBRID** - Hybrydowy algorytm łączący heurystyczną hierarchię priorytetów z taktyczną analizą kilku ruchów do przodu (plik `strategic/move_finder_hybrid.py`). Jest kilkukrotnie szybszy od minimax i oferuje bardzo dobrą jakość gry.
 - **LEGACY** - Czysto heurystyczny algorytm bez minmax (plik `strategic/move_finder_legacy.py`). Jest prosty, szybki i działa symetrycznie dla X oraz O.
 
+### Wybór algorytmu Q-Learning
+
+Dla agenta Q-learning możesz wybrać algorytm w pliku `config.py`:
+
+```python
+# Q-learning algorithm configuration
+# Options: QLearningAlgorithmType.LEGACY, QLearningAlgorithmType.UPGRADED
+Q_LEARNING_ALGORITHM: Final[QLearningAlgorithmType] = QLearningAlgorithmType.LEGACY
+```
+
+**Dostępne warianty:**
+- **LEGACY** - Oryginalna implementacja z `kolko_legacy.py` (plik `ai/q_learning_legacy.py`).
+- **UPGRADED** - Nowa wersja Q-learning przygotowana pod kolejne usprawnienia (plik `ai/q_learning_upgraded.py`).
+
 
 ## Uruchomienie
 
