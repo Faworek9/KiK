@@ -6,7 +6,8 @@ import config
 from game.board import create_empty_board, available_moves, to_state_key
 from game.game import Game
 from game.rules import get_game_result
-from ai.move_finder import StrategicMoveFinder
+from ai.move_finder_minimax import StrategicMoveFinder
+from ai.move_finder_hybrid import HybridStrategicMoveFinder
 from ai.move_finder_legacy import LegacyStrategicMoveFinder
 from ai.q_learning import QLearningAgent
 from storage.q_table_storage import load_q_table, save_q_table
@@ -54,7 +55,10 @@ class Trainer:
         if config.STRATEGIC_ALGORITHM == config.StrategicAlgorithmType.MINIMAX:
             self.strategic_finder_x = StrategicMoveFinder(config.PLAYER_X)
             self.strategic_finder_o = StrategicMoveFinder(config.PLAYER_O)
-        else:  # LEGACY_HEURISTIC
+        elif config.STRATEGIC_ALGORITHM == config.StrategicAlgorithmType.HYBRID:
+            self.strategic_finder_x = HybridStrategicMoveFinder(config.PLAYER_X)
+            self.strategic_finder_o = HybridStrategicMoveFinder(config.PLAYER_O)
+        else:  # LEGACY
             self.strategic_finder_x = LegacyStrategicMoveFinder(config.PLAYER_X)
             self.strategic_finder_o = LegacyStrategicMoveFinder(config.PLAYER_O)
         

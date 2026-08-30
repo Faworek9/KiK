@@ -19,17 +19,18 @@ class StrategyType(Enum):
 class StrategicAlgorithmType(Enum):
     """Algorithm type for strategic AI."""
     MINIMAX = "minimax"
-    LEGACY_HEURISTIC = "legacy_heuristic"
+    HYBRID = "hybrid"
+    LEGACY = "legacy"
 
 
 # Player strategy configuration
 # Options: StrategyType.STRATEGIC, StrategyType.Q_LEARNING, StrategyType.RANDOM
-PLAYER_X_STRATEGY: Final[StrategyType] = StrategyType.Q_LEARNING
-PLAYER_O_STRATEGY: Final[StrategyType] = StrategyType.STRATEGIC
+PLAYER_X_STRATEGY: Final[StrategyType] = StrategyType.STRATEGIC
+PLAYER_O_STRATEGY: Final[StrategyType] = StrategyType.Q_LEARNING
 
 # Strategic algorithm configuration
-# Options: StrategicAlgorithmType.MINIMAX, StrategicAlgorithmType.LEGACY_HEURISTIC
-STRATEGIC_ALGORITHM: Final[StrategicAlgorithmType] = StrategicAlgorithmType.LEGACY_HEURISTIC
+# Options: StrategicAlgorithmType.MINIMAX, StrategicAlgorithmType.HYBRID, StrategicAlgorithmType.LEGACY
+STRATEGIC_ALGORITHM: Final[StrategicAlgorithmType] = StrategicAlgorithmType.LEGACY
 
 # Training parameters
 INITIAL_EPSILON: Final[float] = 0.7

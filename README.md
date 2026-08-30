@@ -37,17 +37,24 @@ PLAYER_O_STRATEGY: Final[StrategyType] = StrategyType.Q_LEARNING
 
 ### Wybór algorytmu strategicznego
 
-Dla strategicznego AI możesz wybrać algorytm w linii 32 pliku `config.py`:
+Dla strategicznego AI możesz wybrać algorytm w pliku `config.py`:
 
 ```python
 # Strategic algorithm configuration
-# Options: StrategicAlgorithmType.MINIMAX, StrategicAlgorithmType.LEGACY_HEURISTIC
-STRATEGIC_ALGORITHM: Final[StrategicAlgorithmType] = StrategicAlgorithmType.LEGACY_HEURISTIC
+# Options: StrategicAlgorithmType.MINIMAX, StrategicAlgorithmType.HYBRID, StrategicAlgorithmType.LEGACY
+STRATEGIC_ALGORITHM: Final[StrategicAlgorithmType] = StrategicAlgorithmType.LEGACY
 ```
 
 **Dostępne algorytmy:**
-- **MINIMAX** - Algorytm minimax z alpha-beta pruning (plik `ai/move_finder.py`). Gwarantuje idealną grę, ale jest wolniejszy.
-- **LEGACY_HEURISTIC** - Heurystyczny algorytm oparty na hierarchii priorytetów (plik `ai/move_finder_legacy.py`). Jest kilkukrotnie szybszy od minimax i oferuje bardzo dobrą jakość gry.
+- **MINIMAX** - Algorytm minimax z alpha-beta pruning (plik `ai/move_finder_minimax.py`). Gwarantuje idealną grę, ale jest wolniejszy.
+- **HYBRID** - Hybrydowy algorytm łączący heurystyczną hierarchię priorytetów z taktyczną analizą kilku ruchów do przodu (plik `ai/move_finder_hybrid.py`). Jest kilkukrotnie szybszy od minimax i oferuje bardzo dobrą jakość gry.
+- **LEGACY** - Czysto heurystyczny algorytm bez minmax (plik `ai/move_finder_legacy.py`). Jest prosty, szybki i działa symetrycznie dla X oraz O.
+
+**Co zostało zmienione w `LEGACY`:**
+- nowy moduł ma własny, prosty zestaw reguł heurystycznych,
+- priorytet ma natychmiastowa wygrana i blokada zagrożeń przeciwnika,
+- algorytm rozpoznaje forki i ruchy obronne bez użycia minmax,
+- decyzje końcowe są deterministyczne i oparte na analizie linii oraz pozycji.
 
 ## Uruchomienie
 

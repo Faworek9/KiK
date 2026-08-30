@@ -1,4 +1,4 @@
-"""Strategic move finder for tic-tac-toe AI."""
+"""Minimax strategic move finder for tic-tac-toe AI with alpha-beta pruning."""
 
 from typing import Optional
 import random

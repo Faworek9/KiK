@@ -1,302 +1,165 @@
-"""Heuristic strategic move finder for tic-tac-toe AI (legacy algorithm adapted)."""
+"""Heuristic strategic move finder without minimax search."""
 
-from typing import Optional, Tuple
-import random
+from typing import Optional
+
 import config
-from game.board import Board, make_move, available_moves
+from game.board import Board, available_moves, make_move
 from game.rules import check_winner
 
 
 def opponent(player: int) -> int:
-    """Get the opponent player."""
+    """Return the opposing player."""
     return config.PLAYER_O if player == config.PLAYER_X else config.PLAYER_X
 
 
-def count_threats(board: Board, player: int) -> list[int]:
-    """Return every empty square that completes a line for a player."""
-    threats: list[int] = []
+def _position_score(move: int) -> int:
+    """Return a simple positional priority for deterministic tie-breaking."""
+    if move == config.CENTER:
+        return 3
+    if move in config.CORNERS:
+        return 2
+    return 1
+
+
+def _is_corner(move: int) -> bool:
+    """Check whether a move is a corner square."""
+    return move in config.CORNERS
+
+
+def _is_side(move: int) -> bool:
+    """Check whether a move is a side square."""
+    return move in config.EDGES
+
+
+def _opposite_corner(move: int) -> Optional[int]:
+    """Return the opposite corner for a corner square."""
+    if move == 0:
+        return 8
+    if move == 2:
+        return 6
+    if move == 6:
+        return 2
+    if move == 8:
+        return 0
+    return None
+
+
+def _has_opposite_corners(board: Board, player: int) -> bool:
+    """Check whether a player occupies any opposite corner pair."""
+    return (
+        board[0] == player and board[8] == player
+    ) or (
+        board[2] == player and board[6] == player
+    )
+
+
+def find_opening_move(board: Board, player: int) -> Optional[int]:
+    """Choose the opening move using the classic perfect-play heuristic."""
+    moves_played = 9 - len(available_moves(board))
+
+    if moves_played == 0:
+        return config.CENTER
+
+    if moves_played == 1:
+        if board[config.CENTER] == config.EMPTY:
+            return config.CENTER
+        for corner in config.CORNERS:
+            if board[corner] == config.EMPTY:
+                return corner
+
+    return None
+
+
+def _winning_moves(board: Board, player: int) -> list[int]:
+    """Return all immediate winning moves for a player."""
+    moves: list[int] = []
+    for move in available_moves(board):
+        if check_winner(make_move(board, move, player)) == player:
+            moves.append(move)
+    return moves
+
+
+def _fork_moves(board: Board, player: int) -> list[int]:
+    """Return moves that create two or more immediate winning replies."""
+    moves: list[int] = []
+    for move in available_moves(board):
+        after = make_move(board, move, player)
+        if len(_winning_moves(after, player)) >= 2:
+            moves.append(move)
+    return moves
+
+
+def _line_balance(board: Board, player: int) -> int:
+    """Score open lines from the point of view of one player."""
+    opp = opponent(player)
+    score = 0
+
     for line in config.WINNING_LINES:
         values = [board[pos] for pos in line]
-        if values.count(player) == 2 and values.count(config.EMPTY) == 1:
-            for pos in line:
-                if board[pos] == config.EMPTY and pos not in threats:
-                    threats.append(pos)
-                    break
-    return threats
+        our_count = values.count(player)
+        opp_count = values.count(opp)
+        empty_count = values.count(config.EMPTY)
 
+        if our_count > 0 and opp_count > 0:
+            continue
 
-def find_winning_moves(board: Board, player: int) -> list[int]:
-    """Return all immediate winning moves for a player."""
-    wins: list[int] = []
-    for move in available_moves(board):
-        test_board = make_move(board, move, player)
-        if check_winner(test_board) == player:
-            wins.append(move)
-    return wins
+        if opp_count == 0:
+            if our_count == 2 and empty_count == 1:
+                score += 100
+            elif our_count == 1 and empty_count == 2:
+                score += 12
+            elif our_count == 0 and empty_count == 3:
+                score += 1
+        elif our_count == 0:
+            if opp_count == 2 and empty_count == 1:
+                score -= 100
+            elif opp_count == 1 and empty_count == 2:
+                score -= 12
+            elif opp_count == 0 and empty_count == 3:
+                score -= 1
+
+    return score
 
 
 def find_winning_move(board: Board, player: int) -> Optional[int]:
-    """Find immediate winning move for player.
-    
-    Args:
-        board: Current board state
-        player: Player to find winning move for
-        
-    Returns:
-        Position of winning move, or None if no winning move exists
-    """
-    for move in available_moves(board):
-        test_board = make_move(board, move, player)
-        if check_winner(test_board) == player:
-            return move
-    return None
+    """Find a move that wins immediately."""
+    best_move: Optional[int] = None
+    best_score = (-1, -1)
+
+    for move in _winning_moves(board, player):
+        score = (_position_score(move), -move)
+        if score > best_score:
+            best_score = score
+            best_move = move
+
+    return best_move
 
 
 def find_blocking_move(board: Board, player: int) -> Optional[int]:
-    """Find move that blocks opponent's immediate win or multi-threat.
-    
-    Args:
-        board: Current board state
-        player: Player to find blocking move for
-        
-    Returns:
-        Position of blocking move, or None if no block needed
-    """
+    """Find the best move that reduces the opponent's immediate wins."""
     opp = opponent(player)
-    opp_winning = find_winning_moves(board, opp)
-    if opp_winning:
-        return opp_winning[0]
-
-    opp_threats = count_threats(board, opp)
-    if not opp_threats:
+    opp_wins_before = _winning_moves(board, opp)
+    if not opp_wins_before:
         return None
 
-    best_move = opp_threats[0]
-    best_score = -1
-    for move in opp_threats:
-        test_board = make_move(board, move, player)
-        score = 0
-        if find_winning_move(test_board, player) is not None:
-            score += 100
-        if len(count_threats(test_board, opp)) == 0:
-            score += 25
-        if move == config.CENTER:
-            score += 5
-        elif move in config.CORNERS:
-            score += 3
-        if score > best_score:
-            best_score = score
-            best_move = move
-    return best_move
-
-
-def find_forced_sequence(board: Board, player: int, depth: int = 2) -> Optional[int]:
-    """Find a move that creates a forced winning sequence.
-    
-    Simulates: player move -> opponent response -> player move -> check if winning
-    depth=1: simplified sequence (player -> opponent -> player wins)
-    depth=2: full sequence (player -> opponent -> player -> opponent -> player wins)
-    
-    Args:
-        board: Current board state
-        player: Player to find sequence for
-        depth: 1 for simplified, 2 for full sequence
-        
-    Returns:
-        First move of sequence, or None if no sequence found
-    """
-    opp = opponent(player)
-    
-    for move1 in available_moves(board):
-        board1 = make_move(board, move1, player)
-        
-        # Check if this move creates a winning opportunity
-        winning_lines = 0
-        for line in config.WINNING_LINES:
-            values = [board1[pos] for pos in line]
-            if values.count(player) == 2 and values.count(config.EMPTY) == 1:
-                winning_lines += 1
-        
-        # If we create multiple winning lines, it's a fork - take it
-        if winning_lines >= 2:
-            return move1
-        
-        # Check if opponent has immediate win to block
-        opp_winning = find_winning_move(board1, opp)
-        
-        if opp_winning is not None:
-            # Opponent can win immediately, try to block
-            board2 = make_move(board1, opp_winning, opp)
-            
-            if depth == 1:
-                # Simplified: after opponent response, check if we can still win
-                if find_winning_move(board2, player) is not None:
-                    return move1
-            else:  # depth == 2
-                # Full: try another move after opponent response
-                for move2 in available_moves(board2):
-                    board3 = make_move(board2, move2, player)
-                    
-                    # Check if opponent can win after our second move
-                    opp_winning2 = find_winning_move(board3, opp)
-                    if opp_winning2 is None:
-                        # Opponent can't win immediately, check if we can
-                        if find_winning_move(board3, player) is not None:
-                            return move1
-        else:
-            # Opponent has no immediate win
-            if depth == 1:
-                # Simplified: if opponent can't win, check if we can
-                if find_winning_move(board1, player) is not None:
-                    return move1
-            else:  # depth == 2
-                # Full: try second move
-                for move2 in available_moves(board1):
-                    board2 = make_move(board1, move2, player)
-                    
-                    # Check if opponent can win
-                    opp_winning2 = find_winning_move(board2, opp)
-                    if opp_winning2 is None:
-                        if find_winning_move(board2, player) is not None:
-                            return move1
-    
-    return None
-
-
-def find_defensive_move(board: Board, player: int, complex_defense: bool = False) -> Optional[int]:
-    """Find defensive move against opponent's forced sequences.
-    
-    Args:
-        board: Current board state
-        player: Player to find defensive move for
-        complex_defense: If True, use more complex defense logic
-        
-    Returns:
-        Defensive move position, or None if no defense needed
-    """
-    opp = opponent(player)
-
-    opp_sequence = find_forced_sequence(board, opp, depth=1 if not complex_defense else 2)
-    if opp_sequence is not None:
-        for move in available_moves(board):
-            test_board = make_move(board, move, player)
-            if complex_defense:
-                opp_seq_after = find_forced_sequence(test_board, opp, depth=2)
-                opp_win_after = find_winning_move(test_board, opp)
-                if opp_win_after is None and opp_seq_after is None:
-                    return move
-            else:
-                opp_seq_after = find_forced_sequence(test_board, opp, depth=1)
-                if opp_seq_after is None:
-                    return move
-
-    opp_threats = count_threats(board, opp)
-    if opp_threats:
-        for move in available_moves(board):
-            test_board = make_move(board, move, player)
-            if len(count_threats(test_board, opp)) == 0:
-                return move
-
-    return None
-
-
-def find_fork_prevention(board: Board, player: int) -> Optional[int]:
-    """Find move that prevents opponent from creating a fork or simple threats.
-    
-    A fork is when opponent has two ways to win.
-    Also handles simple linear threats that aren't immediate wins.
-    
-    Args:
-        board: Current board state
-        player: Player to find fork prevention for
-        
-    Returns:
-        Move that prevents fork or threat, or None if no threat
-    """
-    opp = opponent(player)
-    opp_threats = count_threats(board, opp)
-
-    if len(opp_threats) >= 2:
-        return opp_threats[0]
-
-    for opp_move in available_moves(board):
-        test_board = make_move(board, opp_move, opp)
-        if len(count_threats(test_board, opp)) >= 2:
-            for move in available_moves(board):
-                if move == opp_move:
-                    continue
-                block_board = make_move(board, move, player)
-                if len(count_threats(block_board, opp)) < 2:
-                    return move
-
-    return None
-
-
-def _tactical_evaluation(board: Board, player: int, current_player: int, depth: int) -> int:
-    """Evaluate a board from the tactical perspective of a player.
-    
-    The legacy heuristic remains in place, but the final move selection now
-    does a deeper tactical risk evaluation to avoid fork traps and forced losses.
-    """
-    winner = check_winner(board)
-    if winner == player:
-        return 100 - depth
-    if winner == opponent(player):
-        return depth - 100
-    if not available_moves(board):
-        return 0
-
-    if depth == 0:
-        score = 0
-        score += 20 * len(count_threats(board, player))
-        score -= 25 * len(count_threats(board, opponent(player)))
-        score += 5 * len(find_winning_moves(board, player))
-        score -= 10 * len(find_winning_moves(board, opponent(player)))
-        if board[config.CENTER] == player:
-            score += 3
-        elif board[config.CENTER] == opponent(player):
-            score -= 3
-        return score
-
-    best_value = -10**9 if current_player == player else 10**9
+    best_move: Optional[int] = None
+    best_score = (-10**9, -10**9, -10**9, -10**9, -10**9, -10**9, -10**9)
 
     for move in available_moves(board):
-        test_board = make_move(board, move, current_player)
-        if check_winner(test_board) == current_player:
-            value = 100 - depth if current_player == player else depth - 100
-        else:
-            value = _tactical_evaluation(
-                test_board,
-                player,
-                opponent(current_player),
-                depth - 1,
-            )
-
-        if current_player == player:
-            best_value = max(best_value, value)
-        else:
-            best_value = min(best_value, value)
-
-    return best_value
-
-
-def find_tactical_move(board: Board, player: int) -> Optional[int]:
-    """Score all legal moves by tactical safety and opportunity."""
-    best_move = None
-    best_score = -10**9
-
-    for move in available_moves(board):
-        test_board = make_move(board, move, player)
-        if check_winner(test_board) == player:
-            return move
-
-        score = _tactical_evaluation(
-            test_board,
-            player,
-            opponent(player),
-            depth=8,
+        after = make_move(board, move, player)
+        opp_wins_after = len(_winning_moves(after, opp))
+        opp_forks_after = len(_fork_moves(after, opp))
+        our_wins_after = len(_winning_moves(after, player))
+        score = (
+            1 if opp_wins_after == 0 else 0,
+            len(opp_wins_before) - opp_wins_after,
+            -opp_wins_after,
+            1 if opp_forks_after == 0 else 0,
+            -opp_forks_after,
+            our_wins_after,
+            1 if _is_side(move) else 0,
+            _position_score(move),
         )
-
         if score > best_score:
             best_score = score
             best_move = move
@@ -304,326 +167,146 @@ def find_tactical_move(board: Board, player: int) -> Optional[int]:
     return best_move
 
 
-def find_center_control(board: Board, player: int) -> Optional[int]:
-    """Find strategic center control move.
-    
-    Args:
-        board: Current board state
-        player: Player to find move for
-        
-    Returns:
-        Center if available, otherwise None
-    """
-    if board[config.CENTER] == config.EMPTY:
-        return config.CENTER
-    return None
+def find_fork_move(board: Board, player: int) -> Optional[int]:
+    """Find a move that creates a fork."""
+    best_move: Optional[int] = None
+    best_score = (-1, -1, -1, -1)
 
-
-def find_strategic_pattern(board: Board, player: int) -> Optional[int]:
-    """Find move based on strategic patterns.
-    
-    Args:
-        board: Current board state
-        player: Player to find move for
-        
-    Returns:
-        Strategic pattern move, or None if no pattern applies
-    """
-    opp = opponent(player)
-    moves = available_moves(board)
-    
-    # Strategic pattern: if we have center and opponent has corner, play opposite corner
-    if board[config.CENTER] == player:
-        for i in config.CORNERS:
-            if board[i] == opp:
-                opposite = 8 - i
-                if opposite in moves:
-                    return opposite
-    
-    # Strategic pattern: if opponent has center, play corner to create diagonal threat
-    if board[config.CENTER] == opp:
-        for corner in config.CORNERS:
-            if corner in moves:
-                return corner
-    
-    return None
-
-
-def find_best_positional_move(board: Board, player: int) -> Optional[int]:
-    """Find best move based on positional heuristics.
-    
-    Args:
-        board: Current board state
-        player: Player to find move for
-        
-    Returns:
-        Best positional move
-    """
-    opp = opponent(player)
-    moves = available_moves(board)
-    
-    # Score each move based on positional value
-    best_move = None
-    best_score = -100
-    
-    for move in moves:
-        score = 0
-        
-        # Position priority: center > corners > edges
-        if move == config.CENTER:
-            score += 5
-        elif move in config.CORNERS:
-            score += 3
-        else:  # edges
-            score += 1
-        
-        # Check if this move creates a winning opportunity
-        test_board = make_move(board, move, player)
-        winning_lines = 0
-        for line in config.WINNING_LINES:
-            values = [test_board[pos] for pos in line]
-            if values.count(player) == 2 and values.count(config.EMPTY) == 1:
-                winning_lines += 1
-        score += winning_lines * 3  # Increased weight for offensive opportunities
-        
-        # Check if this move creates a fork (multiple winning lines)
-        if winning_lines >= 2:
-            score += 20  # Very high priority for forks
-        
-        # Check if this move blocks opponent
-        opp_winning = find_winning_move(board, opp)
-        if opp_winning is not None and move == opp_winning:
-            score += 10  # High priority to block
-        
-        # Check if this move prevents opponent from creating winning lines
-        test_board_opp = make_move(board, move, player)
-        opp_winning_lines = 0
-        for line in config.WINNING_LINES:
-            values = [test_board_opp[pos] for pos in line]
-            if values.count(opp) == 2 and values.count(config.EMPTY) == 1:
-                opp_winning_lines += 1
-        score -= opp_winning_lines  # Prefer moves that reduce opponent's opportunities
-        
-        # Bonus for moves that create potential winning lines
-        potential_lines = 0
-        for line in config.WINNING_LINES:
-            values = [test_board[pos] for pos in line]
-            if values.count(player) == 1 and values.count(config.EMPTY) == 2:
-                potential_lines += 1
-        score += potential_lines  # Prefer moves that create future opportunities
-        
+    for move in _fork_moves(board, player):
+        after = make_move(board, move, player)
+        score = (
+            len(_winning_moves(after, player)),
+            _line_balance(after, player),
+            -len(_winning_moves(after, opponent(player))),
+            _position_score(move),
+        )
         if score > best_score:
             best_score = score
             best_move = move
-    
+
     return best_move
 
 
-def find_offensive_fork(board: Board, player: int) -> Optional[int]:
-    """Find move that creates an offensive fork (multiple winning threats).
-    
-    Args:
-        board: Current board state
-        player: Player to find offensive fork for
-        
-    Returns:
-        Move that creates fork, or None if no fork opportunity
-    """
+def find_fork_block_move(board: Board, player: int) -> Optional[int]:
+    """Find a move that reduces the opponent's fork opportunities."""
+    opp = opponent(player)
+    opp_forks_before = _fork_moves(board, opp)
+    if not opp_forks_before:
+        return None
+
+    best_move: Optional[int] = None
+    best_score = (-10**9, -10**9, -10**9, -10**9, -10**9, -10**9, -10**9)
+
+    for move in available_moves(board):
+        after = make_move(board, move, player)
+        opp_wins_after = len(_winning_moves(after, opp))
+        opp_forks_after = len(_fork_moves(after, opp))
+        our_wins_after = len(_winning_moves(after, player))
+        score = (
+            1 if opp_wins_after == 0 else 0,
+            1 if opp_forks_after == 0 else 0,
+            len(opp_forks_before) - opp_forks_after,
+            -opp_forks_after,
+            our_wins_after,
+            1 if _is_side(move) and _has_opposite_corners(board, opp) and board[config.CENTER] == player else 0,
+            _position_score(move),
+        )
+        if score > best_score:
+            best_score = score
+            best_move = move
+
+    return best_move
+
+
+def find_opposite_corner_move(board: Board, player: int) -> Optional[int]:
+    """Find an opposite corner move when the center is already controlled."""
+    if board[config.CENTER] != player:
+        return None
+
+    opp = opponent(player)
+    best_move: Optional[int] = None
+    best_score = (-1, -1)
+
+    for corner in config.CORNERS:
+        if board[corner] != opp:
+            continue
+
+        opposite = _opposite_corner(corner)
+        if opposite is None or board[opposite] != config.EMPTY:
+            continue
+
+        score = (1 if _is_corner(opposite) else 0, -opposite)
+        if score > best_score:
+            best_score = score
+            best_move = opposite
+
+    return best_move
+
+
+def find_positional_move(board: Board, player: int) -> int:
+    """Choose the strongest remaining move by board position."""
     moves = available_moves(board)
-    
+    if not moves:
+        raise ValueError("No available moves")
+
+    opp = opponent(player)
+    best_move = moves[0]
+    best_score = (-10**9, -10**9, -10**9, -10**9, -10**9, -10**9)
+
     for move in moves:
-        test_board = make_move(board, move, player)
-        
-        # Count how many winning lines this move creates
-        winning_lines = 0
-        for line in config.WINNING_LINES:
-            values = [test_board[pos] for pos in line]
-            if values.count(player) == 2 and values.count(config.EMPTY) == 1:
-                winning_lines += 1
-        
-        # If this creates 2 or more winning lines, it's a fork
-        if winning_lines >= 2:
-            return move
-    
-    return None
+        after = make_move(board, move, player)
+        score = (
+            1 if _is_corner(move) else 0,
+            1 if _is_side(move) else 0,
+            _position_score(move),
+            len(_winning_moves(after, player)),
+            -len(_winning_moves(after, opp)),
+            -len(_fork_moves(after, opp)),
+        )
+        if score > best_score:
+            best_score = score
+            best_move = move
 
-
-def strategic_opening_move(board: Board, player: int) -> int:
-    """Choose strategic opening move (deterministic).
-    
-    Args:
-        board: Current board state
-        player: Player making the move
-        
-    Returns:
-        Strategic opening position
-    """
-    moves_count = 9 - len(available_moves(board))
-    
-    if moves_count == 0:
-        # First move: always center (optimal)
-        return config.CENTER
-    elif moves_count == 1:
-        # Second move: center if available, otherwise corner opposite to opponent
-        if board[config.CENTER] == config.EMPTY:
-            return config.CENTER
-        else:
-            # Find opponent's first move and play opposite corner
-            opp = opponent(player)
-            for i in range(9):
-                if board[i] == opp:
-                    if i in config.CORNERS:
-                        # Play opposite corner
-                        opposite = 8 - i  # 0->8, 2->6, 6->2, 8->0
-                        if board[opposite] == config.EMPTY:
-                            return opposite
-                    # If opponent played edge, play any corner
-                    for corner in config.CORNERS:
-                        if board[corner] == config.EMPTY:
-                            return corner
-    elif moves_count == 2:
-        # Third move: strategic patterns
-        opp = opponent(player)
-
-        opp_winning = find_winning_move(board, opp)
-        if opp_winning is not None:
-            return opp_winning
-
-        opp_threats = count_threats(board, opp)
-        if opp_threats:
-            return opp_threats[0]
-
-        if board[config.CENTER] == player:
-            for i in config.CORNERS:
-                if board[i] == opp:
-                    opposite = 8 - i
-                    if board[opposite] == config.EMPTY:
-                        return opposite
-
-        if board[config.CENTER] == opp:
-            for corner in config.CORNERS:
-                if board[corner] == config.EMPTY:
-                    return corner
-
-    return available_moves(board)[0]
+    return best_move
 
 
 class LegacyStrategicMoveFinder:
-    """Legacy heuristic strategic move finder adapted to Board tuple."""
-    
+    """Purely heuristic strategic move finder."""
+
     def __init__(self, player: int):
-        """Initialize move finder for a player.
-        
-        Args:
-            player: PLAYER_X or PLAYER_O
-        """
         self.player = player
-    
+
     def choose_move(self, board: Board) -> int:
-        """Choose optimal move using heuristic priority hierarchy.
-        
-        Priority hierarchy:
-        1. Immediate win
-        2. Block opponent's immediate win
-        3. Create simplified winning sequence
-        4. Create full winning sequence
-        5. Block opponent's simplified sequence
-        6. Block opponent's full sequence
-        7. Prevent opponent fork
-        8. Control center
-        9. Random move (fallback)
-        
-        Args:
-            board: Current board state
-            
-        Returns:
-            Chosen move position (0-8)
-        """
+        """Choose a move using a strict heuristic priority order."""
         moves = available_moves(board)
         if not moves:
-            raise ValueError("No available moves")
-        
-        # Opening moves
-        move = strategic_opening_move(board, self.player)
-        if len(moves) >= 8:  # First or second move
-            return move
-        
-        # Priority hierarchy
-        move = self._find_strategic_move(board)
+            raise ValueError("No available moves for strategic AI")
+
+        move = find_opening_move(board, self.player)
         if move is not None:
             return move
-        
-        # Fallback to random move
-        return random.choice(moves)
-    
-    def _find_strategic_move(self, board: Board) -> Optional[int]:
-        """Find strategic move using priority hierarchy.
-        
-        Args:
-            board: Current board state
-            
-        Returns:
-            Move position or None
-        """
-        # Priority 1: Immediate win
+
         move = find_winning_move(board, self.player)
         if move is not None:
             return move
-        
-        # Priority 2: Block opponent's immediate win
+
         move = find_blocking_move(board, self.player)
         if move is not None:
             return move
-        
-        # Priority 3: One-ply tactical evaluation for forks and hidden threats
-        move = find_tactical_move(board, self.player)
+
+        move = find_fork_move(board, self.player)
         if move is not None:
             return move
-        
-        # Priority 4: Create offensive fork (elevated - forks are powerful)
-        move = find_offensive_fork(board, self.player)
+
+        move = find_fork_block_move(board, self.player)
         if move is not None:
             return move
-        
-        # Priority 5: Control center (elevated - center is crucial)
-        move = find_center_control(board, self.player)
+
+        move = find_opposite_corner_move(board, self.player)
         if move is not None:
             return move
-        
-        # Priority 6: Strategic patterns (center vs corner, etc.)
-        move = find_strategic_pattern(board, self.player)
-        if move is not None:
-            return move
-        
-        # Priority 6: Create simplified winning sequence
-        move = find_forced_sequence(board, self.player, depth=1)
-        if move is not None:
-            return move
-        
-        # Priority 7: Create full winning sequence
-        move = find_forced_sequence(board, self.player, depth=2)
-        if move is not None:
-            return move
-        
-        # Priority 8: Block opponent's simplified sequence
-        move = find_defensive_move(board, self.player, complex_defense=False)
-        if move is not None:
-            return move
-        
-        # Priority 9: Block opponent's full sequence
-        move = find_defensive_move(board, self.player, complex_defense=True)
-        if move is not None:
-            return move
-        
-        # Priority 10: Prevent opponent fork
-        move = find_fork_prevention(board, self.player)
-        if move is not None:
-            return move
-        
-        # Priority 11: Best positional move
-        move = find_best_positional_move(board, self.player)
-        if move is not None:
-            return move
-        
-        return None
-    
+
+        return find_positional_move(board, self.player)
+
+
+StrategicMoveFinder = LegacyStrategicMoveFinder
