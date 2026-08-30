@@ -286,6 +286,9 @@ class StrategicMoveFinder:
         if not moves:
             raise ValueError("No available moves for strategic AI")
 
+        if len(moves) == 9:
+            return strategic_opening_move(board, self.player)
+
         best_move = moves[0]
         best_score = -100
 

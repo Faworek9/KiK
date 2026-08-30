@@ -1,6 +1,7 @@
 """Heuristic strategic move finder without minimax search."""
 
 from typing import Optional
+import random
 
 import config
 from game.board import Board, available_moves, make_move
@@ -55,11 +56,11 @@ def _has_opposite_corners(board: Board, player: int) -> bool:
 
 
 def find_opening_move(board: Board, player: int) -> Optional[int]:
-    """Choose the opening move using the classic perfect-play heuristic."""
+    """Choose the opening move: first move is a random center or corner."""
     moves_played = 9 - len(available_moves(board))
 
     if moves_played == 0:
-        return CENTER
+        return random.choice([CENTER, *CORNERS])
 
     if moves_played == 1:
         if board[CENTER] == config.EMPTY:

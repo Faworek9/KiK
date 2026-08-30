@@ -25,8 +25,8 @@ class StrategicAlgorithmType(Enum):
 
 # Player strategy configuration
 # Options: StrategyType.STRATEGIC, StrategyType.Q_LEARNING, StrategyType.RANDOM
-PLAYER_X_STRATEGY: Final[StrategyType] = StrategyType.Q_LEARNING
-PLAYER_O_STRATEGY: Final[StrategyType] = StrategyType.RANDOM
+PLAYER_X_STRATEGY: Final[StrategyType] = StrategyType.STRATEGIC
+PLAYER_O_STRATEGY: Final[StrategyType] = StrategyType.Q_LEARNING
 
 # Strategic algorithm configuration
 # Options: StrategicAlgorithmType.MINIMAX, StrategicAlgorithmType.HYBRID, StrategicAlgorithmType.LEGACY

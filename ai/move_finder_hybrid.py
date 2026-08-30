@@ -450,7 +450,9 @@ def find_offensive_fork(board: Board, player: int) -> Optional[int]:
 
 
 def strategic_opening_move(board: Board, player: int) -> int:
-    """Choose strategic opening move (deterministic).
+    """Choose a strategic opening move.
+
+    First move: random among center and corners.
     
     Args:
         board: Current board state
@@ -462,8 +464,7 @@ def strategic_opening_move(board: Board, player: int) -> int:
     moves_count = 9 - len(available_moves(board))
     
     if moves_count == 0:
-        # First move: always center (optimal)
-        return CENTER
+        return random.choice([CENTER, *CORNERS])
     elif moves_count == 1:
         # Second move: center if available, otherwise corner opposite to opponent
         if board[CENTER] == config.EMPTY:
