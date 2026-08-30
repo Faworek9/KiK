@@ -9,7 +9,7 @@ from game.rules import get_game_result
 from strategic.move_finder_minimax import StrategicMoveFinder
 from strategic.move_finder_hybrid import HybridStrategicMoveFinder
 from strategic.move_finder_legacy import LegacyStrategicMoveFinder
-from ai.q_learning import QLearningAgent
+from ai.q_learning_legacy import LegacyQLearningAgent as QLearningAgent
 from storage.q_table_storage import load_q_table, save_q_table
 
 

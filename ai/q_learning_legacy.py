@@ -1,13 +1,13 @@
-"""Q-learning agent for tic-tac-toe."""
+"""Legacy Q-learning agent for tic-tac-toe (adapted from kolko_legacy.py)."""
 
 import random
+from typing import Optional, Dict, List, Tuple
 import config
 from game.board import Board, available_moves, to_state_key
-from typing import Optional, Dict, List, Tuple
 
 
-class QLearningAgent:
-    """Q-learning agent for tic-tac-toe."""
+class LegacyQLearningAgent:
+    """Legacy Q-learning agent for tic-tac-toe."""
     
     def __init__(self, epsilon: float = config.INITIAL_EPSILON):
         """Initialize Q-learning agent.
@@ -181,3 +181,7 @@ class QLearningAgent:
         """
         state_key = self.state_to_key(board)
         self.update_q_value(state_key, move, 0.0)
+
+
+# Alias for backward-compatibility
+QLearningAgent = LegacyQLearningAgent

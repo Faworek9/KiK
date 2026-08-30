@@ -13,7 +13,7 @@ Projekt jest podzielony na moduły:
 - **config.py** - Konfiguracja (stałe, parametry treningu, ścieżki plików)
 - **game/** - Logika gry (plansza, zasady, silnik gry)
 - **strategic/** - Algorytmy strategiczne (Minimax, Hybrid, Legacy)
-- **ai/** - Sztuczna inteligencja (Q-learning agent)
+- **ai/** - Sztuczna inteligencja (np. `ai/q_learning_legacy.py`)
 - **training/** - Trening (trainer, statystyki)
 - **storage/** - Zapis/odczyt (Q-table w JSON)
 - **main.py** - Punkt wejścia
