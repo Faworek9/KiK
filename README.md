@@ -12,7 +12,8 @@ Projekt jest podzielony na moduły:
 
 - **config.py** - Konfiguracja (stałe, parametry treningu, ścieżki plików)
 - **game/** - Logika gry (plansza, zasady, silnik gry)
-- **ai/** - Sztuczna inteligencja (strategic AI, Q-learning agent)
+- **strategic/** - Algorytmy strategiczne (Minimax, Hybrid, Legacy)
+- **ai/** - Sztuczna inteligencja (Q-learning agent)
 - **training/** - Trening (trainer, statystyki)
 - **storage/** - Zapis/odczyt (Q-table w JSON)
 - **main.py** - Punkt wejścia
@@ -46,9 +47,9 @@ STRATEGIC_ALGORITHM: Final[StrategicAlgorithmType] = StrategicAlgorithmType.LEGA
 ```
 
 **Dostępne algorytmy:**
-- **MINIMAX** - Algorytm minimax z alpha-beta pruning (plik `ai/move_finder_minimax.py`). Gwarantuje idealną grę, ale jest wolniejszy.
-- **HYBRID** - Hybrydowy algorytm łączący heurystyczną hierarchię priorytetów z taktyczną analizą kilku ruchów do przodu (plik `ai/move_finder_hybrid.py`). Jest kilkukrotnie szybszy od minimax i oferuje bardzo dobrą jakość gry.
-- **LEGACY** - Czysto heurystyczny algorytm bez minmax (plik `ai/move_finder_legacy.py`). Jest prosty, szybki i działa symetrycznie dla X oraz O.
+- **MINIMAX** - Algorytm minimax z alpha-beta pruning (plik `strategic/move_finder_minimax.py`). Gwarantuje idealną grę, ale jest wolniejszy.
+- **HYBRID** - Hybrydowy algorytm łączący heurystyczną hierarchię priorytetów z taktyczną analizą kilku ruchów do przodu (plik `strategic/move_finder_hybrid.py`). Jest kilkukrotnie szybszy od minimax i oferuje bardzo dobrą jakość gry.
+- **LEGACY** - Czysto heurystyczny algorytm bez minmax (plik `strategic/move_finder_legacy.py`). Jest prosty, szybki i działa symetrycznie dla X oraz O.
 
 
 ## Uruchomienie

@@ -628,4 +628,3 @@ class HybridStrategicMoveFinder:
             return move
         
         return None
-    
