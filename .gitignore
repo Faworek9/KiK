@@ -42,6 +42,9 @@ test_*.py
 legacy/
 
 # Training results and data
+data/
+data_legacy/
+data_upgraded/
 *.json
 *.txt
 wyniki_*.txt

@@ -1,6 +1,5 @@
-"""Trainer for tic-tac-toe Q-learning."""
-
 from dataclasses import dataclass, field
+import os
 import random
 import config
 from game.board import create_empty_board, available_moves, to_state_key
@@ -12,6 +11,7 @@ from strategic.move_finder_legacy import LegacyStrategicMoveFinder
 from ai.q_learning_legacy import LegacyQLearningAgent
 from ai.q_learning_upgraded import UpgradedQLearningAgent
 from storage.q_table_storage import load_q_table, save_q_table
+from storage.paths import get_q_table_path, get_results_path
 
 
 @dataclass
@@ -75,13 +75,13 @@ class Trainer:
         elif config.PLAYER_O_STRATEGY == config.StrategyType.Q_LEARNING:
             self.q_learning_player = config.PLAYER_O
         
-        # Set file paths based on Q-learning player
-        if self.q_learning_player == config.PLAYER_X:
-            self.q_table_path = config.Q_TABLE_X_PATH
-            self.results_path = config.RESULTS_X_PATH
+        # Set file paths based on Q-learning player and algorithm
+        if self.q_learning_player is not None:
+            self.q_table_path = get_q_table_path(self.q_learning_player, config.Q_LEARNING_ALGORITHM)
+            self.results_path = get_results_path(self.q_learning_player, config.Q_LEARNING_ALGORITHM)
         else:
-            self.q_table_path = config.Q_TABLE_O_PATH
-            self.results_path = config.RESULTS_O_PATH
+            self.q_table_path = get_q_table_path(config.PLAYER_O, config.Q_LEARNING_ALGORITHM)
+            self.results_path = get_results_path(config.PLAYER_O, config.Q_LEARNING_ALGORITHM)
         
         # Load existing Q-table if available
         self._load_q_table()
@@ -107,6 +107,9 @@ class Trainer:
         draw_pct = (self.stats.draws / total) * 100
         win_pct = (self.stats.wins / total) * 100
         
+        dir_name = os.path.dirname(os.path.abspath(self.results_path))
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
         with open(self.results_path, 'a') as f:
             f.write(f"porazki: {loss_pct:.1f}%    remisy: {draw_pct:.1f}%     wygrane: {win_pct:.1f}%\n")
     

@@ -76,9 +76,9 @@ Program przeprowadza trening w dwóch etapach:
 1. Test run - 100 gier
 2. Full training - 10,000 gier
 
-Wyniki są zapisywane do plików:
-- `q_X.json` / `q_O.json` - Q-table dla odpowiedniego gracza
-- `wyniki_X.txt` / `wyniki_O.txt` - statystyki treningu
+Wyniki są zapisywane w dedykowanych folderach w zależności od wybranego algorytmu:
+- **LEGACY:** folder `data_legacy/` (`q_X.json` / `q_O.json`, `wyniki_X.txt` / `wyniki_O.txt`)
+- **UPGRADED:** folder `data_upgraded/` (`q_X.json` / `q_O.json`, `wyniki_X.txt` / `wyniki_O.txt`)
 
 ## Parametry treningu
 

@@ -1,5 +1,4 @@
-"""Q-table storage for loading and saving to JSON."""
-
+import os
 import json
 from typing import Dict
 
@@ -27,5 +26,8 @@ def save_q_table(path: str, q_table: Dict):
         path: Path to JSON file
         q_table: Q-table dictionary to save
     """
+    dir_name = os.path.dirname(os.path.abspath(path))
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
     with open(path, 'w') as f:
         json.dump(q_table, f)

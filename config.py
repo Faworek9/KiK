@@ -44,16 +44,13 @@ Q_LEARNING_ALGORITHM: Final[QLearningAlgorithmType] = QLearningAlgorithmType.LEG
 
 # Training parameters
 INITIAL_EPSILON: Final[float] = 0.8
-EPSILON_DECAY: Final[float] = 0.01
-MIN_EPSILON: Final[float] = 0.05
+EPSILON_DECAY: Final[float] = 0.02
+MIN_EPSILON: Final[float] = 0.1
 GAMMA_NEGATIVE: Final[float] = 0.5
 GAMMA_POSITIVE: Final[float] = 0.8
 GAMES_COUNT: Final[int] = 10000
 SAVE_INTERVAL: Final[int] = 100
 
-# File paths
-Q_TABLE_X_PATH: Final[str] = "q_X.json"
-Q_TABLE_O_PATH: Final[str] = "q_O.json"
-RESULTS_X_PATH: Final[str] = "wyniki_X.txt"
-RESULTS_O_PATH: Final[str] = "wyniki_O.txt"
-
+# Directory paths for training data
+DATA_DIR_LEGACY: Final[str] = "data_legacy"
+DATA_DIR_UPGRADED: Final[str] = "data_upgraded"
